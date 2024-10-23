@@ -62,14 +62,31 @@ def activate(request, uidb64, token):
     else:
         return render(request, 'accounts/activation_invalid.html')
 
-def login(request):
+def login_view(request):
     if request.method == 'POST':
-        # Process login form
-        # Check for failed attempts
-        pass
+        form = CustomAuthenticationForm(request, data=request.POST)
+        username = request.POST.get('username')
+        cache_key = f'login_attempts_{username}'
+        attempts = cache.get(cache_key, 0)
+        if attempts >= MAX_FAILED_ATTEMPTS:
+            messages.error(request, 'Your account is locked due to multiple failed login attempts. Please try again later.')
+            return render(request, 'accounts/login.html', {'form': form})
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            cache.delete(cache_key)  # Reset attempts
+            return redirect('home')
+        else:
+            attempts += 1
+            cache.set(cache_key, attempts, LOCKOUT_TIME * 60)
+            if attempts >= MAX_FAILED_ATTEMPTS:
+                messages.error(request, 'Your account is locked due to multiple failed login attempts. Please try again later.')
+            else:
+                messages.error(request, 'Invalid credentials.')
     else:
-        # Display login form
-        pass
+        form = CustomAuthenticationForm()
+    return render(request, 'accounts/login.html', {'form': form})
+
 
 def password_reset_request(request):
     if request.method == "POST":
