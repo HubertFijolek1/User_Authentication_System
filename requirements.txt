@@ -1,0 +1,5 @@
+django
+djangorestframework
+django-two-factor-auth
+pytest
+pytest-django
