@@ -268,12 +268,6 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
 **Note:** This project is intended for educational purposes and may require additional configuration for production use. Always ensure sensitive information is secured using environment variables or a secrets management system.
 
 ---
