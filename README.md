@@ -1,20 +1,5 @@
 # User Authentication System
 
-A Django-based web application implementing a comprehensive user authentication system with the following functionalities:
-
-1. **User Registration with Email Confirmation**
-2. **Password Hashing**
-3. **Email Verification**
-4. **Login with Email or Username**
-5. **Account Lockout After Failed Login Attempts**
-6. **Password Reset via Email**
-7. **Password Reset Token Validation**
-8. **User Profile Update**
-9. **Two-Factor Authentication (2FA)**
-10. **Logout Functionality**
-
----
-
 ## Table of Contents
 
 - [Features](#features)
@@ -47,6 +32,7 @@ A Django-based web application implementing a comprehensive user authentication 
   - [8. User Profile Update](#8-user-profile-update)
   - [9. Two-Factor Authentication (2FA)](#9-two-factor-authentication-2fa)
   - [10. Logout Functionality](#10-logout-functionality)
+- [Additional Features to Consider](#additional-features-to-consider)
 - [Security Considerations](#security-considerations)
 - [Contact Information](#contact-information)
 
@@ -165,7 +151,7 @@ auth_system/
 
 5. **Update Database Settings (Optional)**
 
-   If you prefer to use PostgreSQL or another database, update the `DATABASES` setting in `auth_system/settings.py`.
+   If you prefer to use PostgreSQL or another database, update the `DATABASES` setting in `User_Authentication/settings.py`.
 
 ### Database Migration
 
@@ -212,8 +198,8 @@ The project is set up with GitHub Actions for CI/CD.
 
 ### User Registration
 
-- Navigate to `http://localhost:8000/accounts/register/`
-- Fill out the registration form with username, email, and password.
+- Navigate to `http://localhost:8000/accounts/register/`.
+- Fill out the registration form with a username, email, and password.
 - Upon successful submission, a confirmation email is sent.
 
 ### Email Confirmation
@@ -223,7 +209,7 @@ The project is set up with GitHub Actions for CI/CD.
 
 ### Login
 
-- Navigate to `http://localhost:8000/accounts/login/`
+- Navigate to `http://localhost:8000/accounts/login/`.
 - Login using your email or username and password.
 
 ### Account Lockout
@@ -233,19 +219,19 @@ The project is set up with GitHub Actions for CI/CD.
 
 ### Password Reset
 
-- Navigate to `http://localhost:8000/accounts/password_reset/`
+- Navigate to `http://localhost:8000/accounts/password_reset/`.
 - Enter your registered email address.
 - Check the console output for the password reset link.
 - Click the link to reset your password.
 
 ### Profile Update
 
-- Navigate to `http://localhost:8000/accounts/profile/` (login required)
+- Navigate to `http://localhost:8000/accounts/profile/` (login required).
 - Update your email and username.
 
 ### Two-Factor Authentication
 
-- Navigate to `http://localhost:8000/account/two_factor/` (login required)
+- Navigate to `http://localhost:8000/account/two_factor/` (login required).
 - Follow the instructions to set up 2FA using an authenticator app.
 
 ### Logout
@@ -370,7 +356,7 @@ The project is set up with GitHub Actions for CI/CD.
 
 - **Custom Authentication Backend (`accounts/auth_backend.py`):**
   - Allows authentication with either email or username.
-  - Overrides `authenticate` method.
+  - Overrides the `authenticate` method.
 
 - **Custom Authentication Form (`accounts/forms.py`):**
   - Modifies the login form to accept email or username.
@@ -513,8 +499,8 @@ The project is set up with GitHub Actions for CI/CD.
 
 **Files Involved:**
 
-- `auth_system/settings.py`
-- `auth_system/urls.py`
+- `User_Authentication/settings.py`
+- `User_Authentication/urls.py`
 
 **Implementation Details:**
 
@@ -616,8 +602,3 @@ For any questions or suggestions, please open an issue or contact the project ma
 ---
 
 **Note:** This project is intended for educational purposes and may require additional configuration for production use. Always ensure sensitive information is secured using environment variables or a secrets management system.
-
----
-
-
-
