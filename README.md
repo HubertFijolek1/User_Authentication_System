@@ -36,9 +36,19 @@ A Django-based web application implementing a comprehensive user authentication 
   - [Profile Update](#profile-update)
   - [Two-Factor Authentication](#two-factor-authentication)
   - [Logout](#logout)
+- [Detailed Functionality Analysis](#detailed-functionality-analysis)
+  - [1. User Registration with Email Confirmation](#1-user-registration-with-email-confirmation)
+  - [2. Password Hashing](#2-password-hashing)
+  - [3. Email Verification](#3-email-verification)
+  - [4. Login with Email or Username](#4-login-with-email-or-username)
+  - [5. Account Lockout After Failed Login Attempts](#5-account-lockout-after-failed-login-attempts)
+  - [6. Password Reset via Email](#6-password-reset-via-email)
+  - [7. Password Reset Token Validation](#7-password-reset-token-validation)
+  - [8. User Profile Update](#8-user-profile-update)
+  - [9. Two-Factor Authentication (2FA)](#9-two-factor-authentication-2fa)
+  - [10. Logout Functionality](#10-logout-functionality)
 - [Security Considerations](#security-considerations)
-- [Contributing](#contributing)
-- [License](#license)
+- [Contact Information](#contact-information)
 
 ---
 
@@ -61,7 +71,6 @@ A Django-based web application implementing a comprehensive user authentication 
 
 - **Python 3.8+**
 - **Django 3.2+**
-- **Django REST Framework**
 - **Django Two-Factor Authentication**
 - **SQLite3 (default) or PostgreSQL**
 - **pytest and pytest-django for Testing**
@@ -89,7 +98,7 @@ auth_system/
 │   ├── models.py
 │   ├── urls.py
 │   └── views.py
-├── auth_system/
+├── User_Authentication/
 │   ├── __init__.py
 │   ├── asgi.py
 │   ├── settings.py
@@ -246,6 +255,350 @@ The project is set up with GitHub Actions for CI/CD.
 
 ---
 
+## Detailed Functionality Analysis
+
+### 1. User Registration with Email Confirmation
+
+**Files Involved:**
+
+- `accounts/models.py`
+- `accounts/forms.py`
+- `accounts/views.py`
+- `accounts/templates/accounts/register.html`
+
+**Implementation Details:**
+
+- **Custom User Model (`accounts/models.py`):**
+  - Inherits from `AbstractBaseUser` and `PermissionsMixin`.
+  - Uses email as the primary identifier (`USERNAME_FIELD = 'email'`).
+  - Custom `UserManager` handles user creation with `create_user` and `create_superuser`.
+
+- **Registration Form (`accounts/forms.py`):**
+  - `CustomUserCreationForm` extends `UserCreationForm` to include `email` and `username`.
+
+- **Registration View (`accounts/views.py`):**
+  - Handles GET and POST requests for user registration.
+  - On POST, validates the form and saves the user with `is_active=False`.
+  - Sends an activation email (see Functionality 3).
+
+- **Registration Template (`accounts/templates/accounts/register.html`):**
+  - Renders the registration form using Django's templating language.
+
+**Alternatives:**
+
+- Using Django's default `User` model.
+- Extending the user model with a profile model.
+- Using third-party libraries like `django-allauth`.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Flexibility and control over the user model.
+  - Allows for future extensions and customizations.
+
+- **Cons:**
+  - Increased complexity and maintenance.
+  - Potential compatibility issues with third-party apps.
+
+### 2. Password Hashing
+
+**Implementation Details:**
+
+- **Automatic Hashing:**
+  - Handled by Django's `AbstractBaseUser`.
+  - `user.set_password(password)` hashes the password using Django's password hashers.
+
+**Alternatives:**
+
+- Custom password hashing mechanisms (not recommended).
+- Delegating authentication to third-party systems.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Secure and reliable hashing.
+  - Follows best security practices.
+
+- **Cons:**
+  - Less control over hashing algorithms.
+
+### 3. Email Verification
+
+**Files Involved:**
+
+- `accounts/views.py`
+- `accounts/templates/accounts/activation_email.html`
+- `accounts/urls.py`
+
+**Implementation Details:**
+
+- **Activation Email:**
+  - Uses `send_mail` to send an email with an activation link.
+  - `default_token_generator` generates a secure token.
+  - The activation link includes `uidb64` and `token`.
+
+- **Activation View:**
+  - Validates the token and activates the user.
+  - Logs the user in upon successful activation.
+
+**Alternatives:**
+
+- Using `django-registration`.
+- Asynchronous email sending with Celery.
+- Third-party email services like SendGrid.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Simple and secure implementation.
+  - Full control over email content.
+
+- **Cons:**
+  - Synchronous email sending may affect performance.
+  - Requires additional configuration for email deliverability.
+
+### 4. Login with Email or Username
+
+**Files Involved:**
+
+- `accounts/auth_backend.py`
+- `accounts/forms.py`
+- `accounts/views.py`
+- `settings.py`
+
+**Implementation Details:**
+
+- **Custom Authentication Backend (`accounts/auth_backend.py`):**
+  - Allows authentication with either email or username.
+  - Overrides `authenticate` method.
+
+- **Custom Authentication Form (`accounts/forms.py`):**
+  - Modifies the login form to accept email or username.
+
+- **Settings Configuration:**
+  - Registers the custom backend in `AUTHENTICATION_BACKENDS`.
+
+**Alternatives:**
+
+- Using only email or username for authentication.
+- Using `django-allauth` for multiple authentication methods.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Provides flexibility and convenience for users.
+
+- **Cons:**
+  - Additional complexity in authentication logic.
+
+### 5. Account Lockout After Failed Login Attempts
+
+**Files Involved:**
+
+- `accounts/views.py`
+
+**Implementation Details:**
+
+- **Failed Login Tracking:**
+  - Uses Django's cache framework to track failed attempts.
+  - Locks the account after exceeding `MAX_FAILED_ATTEMPTS`.
+
+- **Lockout Duration:**
+  - Accounts are locked for `LOCKOUT_TIME` minutes.
+
+**Alternatives:**
+
+- Storing failed attempts in the database.
+- Using third-party packages like `django-axes`.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Simple implementation without additional dependencies.
+
+- **Cons:**
+  - Cache may not persist across server restarts.
+  - Not suitable for multi-server environments without a shared cache.
+
+### 6. Password Reset via Email
+
+**Files Involved:**
+
+- `accounts/views.py`
+- `accounts/templates/accounts/password_reset_email.html`
+- `accounts/urls.py`
+
+**Implementation Details:**
+
+- **Password Reset Form:**
+  - Uses Django's `PasswordResetForm`.
+  - Sends an email with a password reset link.
+
+- **Email Template:**
+  - Custom email template for the password reset email.
+
+**Alternatives:**
+
+- Using `django-rest-framework` and JWT tokens.
+- Third-party packages for password reset workflows.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Secure and reliable using Django's built-in mechanisms.
+
+- **Cons:**
+  - Limited customization of internal processes.
+
+### 7. Password Reset Token Validation
+
+**Files Involved:**
+
+- `accounts/views.py`
+- `accounts/templates/accounts/password_reset_confirm.html`
+- `accounts/urls.py`
+
+**Implementation Details:**
+
+- **Token Validation:**
+  - Uses Django's `PasswordResetConfirmView`.
+  - Validates the token and allows the user to set a new password.
+
+- **Template:**
+  - Custom template for the password reset confirmation page.
+
+**Alternatives:**
+
+- Custom implementation of token validation (not recommended).
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Secure and well-tested.
+
+- **Cons:**
+  - Limited customization.
+
+### 8. User Profile Update
+
+**Files Involved:**
+
+- `accounts/forms.py`
+- `accounts/views.py`
+- `accounts/templates/accounts/profile_update.html`
+
+**Implementation Details:**
+
+- **Profile Update Form:**
+  - `ProfileUpdateForm` allows users to update their email and username.
+
+- **Profile Update View:**
+  - Handles updating the user's profile.
+  - Protected by `login_required` decorator.
+
+**Alternatives:**
+
+- Using class-based views like `UpdateView`.
+- Separate forms for different profile fields.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Simple and straightforward.
+
+- **Cons:**
+  - May need to extend for additional profile fields.
+
+### 9. Two-Factor Authentication (2FA)
+
+**Files Involved:**
+
+- `auth_system/settings.py`
+- `auth_system/urls.py`
+
+**Implementation Details:**
+
+- **Dependencies:**
+  - Uses `django-two-factor-auth` and `django-otp`.
+
+- **Configuration:**
+  - Adds necessary apps and middleware.
+  - Includes 2FA URLs.
+
+**Alternatives:**
+
+- Custom 2FA implementation (complex and risky).
+- Using other 2FA packages.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Enhances security significantly.
+
+- **Cons:**
+  - Adds complexity to the authentication process.
+  - May impact user experience.
+
+### 10. Logout Functionality
+
+**Files Involved:**
+
+- `accounts/views.py`
+- `accounts/urls.py`
+
+**Implementation Details:**
+
+- **Logout View:**
+  - Uses Django's `logout` function to invalidate the session.
+
+**Alternatives:**
+
+- Using class-based views like `LogoutView`.
+- Token invalidation for token-based authentication systems.
+
+**Pros and Cons:**
+
+- **Pros:**
+  - Simple and effective.
+
+- **Cons:**
+  - Limited to session-based authentication.
+
+---
+
+## Additional Features to Consider
+
+- **Email Backend Configuration:**
+  - Use a real SMTP server for sending emails in production.
+  - Secure email credentials using environment variables.
+
+- **User Roles and Permissions:**
+  - Implement different user roles (admin, moderator, user).
+  - Use Django's permission system to restrict access.
+
+- **Social Authentication:**
+  - Integrate social login options using `django-allauth`.
+
+- **Account Deactivation and Reactivation:**
+  - Allow users to deactivate/reactivate their accounts.
+
+- **Email Change Confirmation:**
+  - Send a confirmation email when a user changes their email address.
+
+- **Improved UI/UX:**
+  - Enhance the front-end using Bootstrap or another CSS framework.
+  - Ensure the application is responsive and accessible.
+
+- **Logging and Monitoring:**
+  - Implement logging to track user activities.
+  - Use monitoring tools to track application performance.
+
+- **Security Enhancements:**
+  - Implement HTTPS with SSL/TLS certificates.
+  - Set security headers to protect against common vulnerabilities.
+
+---
+
 ## Security Considerations
 
 - **Password Hashing:** Passwords are securely hashed using Django's built-in password management system.
@@ -256,15 +609,9 @@ The project is set up with GitHub Actions for CI/CD.
 
 ---
 
-## Contributing
+## Contact Information
 
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix.
-3. Write your code and add tests.
-4. Ensure all tests pass and the code complies with the project's coding standards.
-5. Submit a pull request with a detailed description of your changes.
+For any questions or suggestions, please open an issue or contact the project maintainer at [hubertfijolek1@gmail.com](mailto:hubertfijolek1@gmail.com).
 
 ---
 
@@ -272,6 +619,5 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-**Contact Information**
 
-For any questions or suggestions, please open an issue or contact the project maintainer at [hubertfijolek1@gmail.com](mailto:hubertfijolek1@gmail.com).
+
