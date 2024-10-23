@@ -6,6 +6,9 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.models import update_last_login
+from django.contrib.auth.signals import user_logged_in
 
 User = get_user_model()
 
@@ -32,3 +35,12 @@ def register(request):
 def activate(request, uidb64, token):
     # Activate the user after validating the token
     pass
+
+def login(request):
+    if request.method == 'POST':
+        # Process login form
+        # Check for failed attempts
+        pass
+    else:
+        # Display login form
+        pass

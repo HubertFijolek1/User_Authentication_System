@@ -51,6 +51,12 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your-email@example.com'
 EMAIL_HOST_PASSWORD = 'your-email-password'
 
+AUTHENTICATION_BACKENDS = [
+    'accounts.auth_backend.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
