@@ -87,28 +87,53 @@ def login_view(request):
         form = CustomAuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
 
+def logout_view(request):
+    logout(request)
+    return redirect('home')
 
 def password_reset_request(request):
     if request.method == "POST":
-        # Generate token and send password reset email
-        pass
+        form = auth_views.PasswordResetForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            associated_users = UserModel.objects.filter(email=email)
+            if associated_users.exists():
+                for user in associated_users:
+                    current_site = request.get_host()
+                    subject = 'Password Reset Requested'
+                    message = render_to_string('accounts/password_reset_email.html', {
+                        'user': user,
+                        'domain': current_site,
+                        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                        'token': default_token_generator.make_token(user),
+                    })
+                    try:
+                        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+                    except BadHeaderError:
+                        return HttpResponse('Invalid header found.')
+                return redirect('password_reset_done')
     else:
-        # Display password reset form
-        pass
+        form = auth_views.PasswordResetForm()
+    return render(request, 'accounts/password_reset.html', {'form': form})
+
+def password_reset_done_view(request):
+    return render(request, 'accounts/password_reset_done.html')
 
 def password_reset_confirm(request, uidb64, token):
-    # Validate token and allow password reset
-    pass
+    return auth_views.PasswordResetConfirmView.as_view(template_name='accounts/password_reset_confirm.html')(request, uidb64=uidb64, token=token)
+
+def password_reset_complete_view(request):
+    return render(request, 'accounts/password_reset_complete.html')
 
 @login_required
 def profile_update(request):
     if request.method == 'POST':
-        # Update user details
-        pass
+        form = ProfileUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('profile_update')
     else:
-        # Display profile form
-        pass
+        form = ProfileUpdateForm(instance=request.user)
+    return render(request, 'accounts/profile_update.html', {'form': form})
 
-def logout(request):
-    auth_logout(request)
-    return redirect('home')
