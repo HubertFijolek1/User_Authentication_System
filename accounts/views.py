@@ -6,9 +6,11 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import logout as auth_logout
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth.signals import user_logged_in
+
 
 User = get_user_model()
 
@@ -44,3 +46,28 @@ def login(request):
     else:
         # Display login form
         pass
+
+def password_reset_request(request):
+    if request.method == "POST":
+        # Generate token and send password reset email
+        pass
+    else:
+        # Display password reset form
+        pass
+
+def password_reset_confirm(request, uidb64, token):
+    # Validate token and allow password reset
+    pass
+
+@login_required
+def profile_update(request):
+    if request.method == 'POST':
+        # Update user details
+        pass
+    else:
+        # Display profile form
+        pass
+
+def logout(request):
+    auth_logout(request)
+    return redirect('home')
