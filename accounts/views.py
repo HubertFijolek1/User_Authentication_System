@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, ProfileUpdateForm
 from django.contrib.auth import views as auth_views
 
+
 UserModel = get_user_model()
 
 # Account lockout settings
@@ -19,6 +20,9 @@ from django.core.cache import cache
 
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_TIME = 15  # minutes
+
+def main_site(request):
+    return render(request, 'accounts/base_generic.html')
 
 def register(request):
     if request.method == 'POST':
@@ -57,7 +61,9 @@ def activate(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        login(request, user)
+        # Specify the backend
+        backend = settings.AUTHENTICATION_BACKENDS[0]  # or choose the appropriate backend
+        login(request, user, backend=backend)
         return redirect('home')
     else:
         return render(request, 'accounts/activation_invalid.html')
